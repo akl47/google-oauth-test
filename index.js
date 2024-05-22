@@ -2,6 +2,9 @@
 const express = require('express');
 const passport = require('passport');
 const app = express();
+const path = require("path");
+const dotenv = require("dotenv");
+dotenv.config({ path: path.join(__dirname, "/.env") });
 
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const session = require('express-session');
@@ -27,12 +30,15 @@ passport.deserializeUser((id, done) => {
 
 // Configure the Google strategy for use by Passport.js
 passport.use(new GoogleStrategy({
-    clientID: '',
-    clientSecret: '',
-    callbackURL: '/auth/google/callback',
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
     prompt: 'select_account'
 }, (accessToken, refreshToken, profile, done) => {
     console.log(profile)
+    console.log("ID", profile.id)
+    console.log("displayName", profile.displayName)
+    console.log("photos", profile.photos[0].value)
     // Here, you would find or create a user in your database
     // Example:
     // User.findOrCreate({ googleId: profile.id }, (err, user) => {
@@ -55,6 +61,7 @@ app.get('/auth/google',
 app.get('/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req, res) => {
+        // console.log("Callback")
         // Successful authentication, redirect home.
         res.redirect('/');
     });
